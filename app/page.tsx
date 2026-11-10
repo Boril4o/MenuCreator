@@ -1,25 +1,37 @@
-import {uploadMenuFiles} from "@/app/actions";
+import NewMenuCard from "@/components/NewMenuCard";
+import {getMenus} from "@/services/menuServices";
+import MenuCard from "@/components/MenuCard";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <form action={uploadMenuFiles} className="flex flex-col gap-4 max-w-sm">
-        {/*
-        accept: Restricts the types of files the user can pick
-        multiple: Add this attribute if you want to allow picking multiple files
-      */}
-        <input
-            type="file"
-            name="files"
-            accept="image/png, image/jpeg"
-            multiple
-            required
-        />
+export default async function Home() {
+    const allMenus = await getMenus();
 
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-          Upload File
-        </button>
-      </form>
-    </div>
-  );
+    return (
+        <main className="min-h-screen bg-gradient-to-b from-neutral-50 via-white to-indigo-50/40">
+            {/* Header */}
+            <header className="px-6 pb-16 pt-20 text-center">
+                <h1 className="text-5xl font-bold tracking-tight text-neutral-900 sm:text-6xl">
+                    Menu Creator
+                </h1>
+                <p className="mx-auto mt-4 max-w-md text-lg text-neutral-500">
+                    Design, preview and manage all your menus in one place.
+                </p>
+            </header>
+
+            {/* Menus */}
+            <section className="mx-auto max-w-6xl px-6 pb-24">
+                <div className="mb-8 flex items-baseline gap-3">
+                    <h2 className="text-3xl font-bold tracking-tight text-neutral-900">
+                        Menus
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-8">
+                    {allMenus.map((menu) => (
+                        <MenuCard key={menu.id} {...menu} />
+                    ))}
+                    <NewMenuCard />
+                </div>
+            </section>
+        </main>
+    );
 }

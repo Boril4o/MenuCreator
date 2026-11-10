@@ -1,11 +1,28 @@
-import {MenuCategory, MenuData, MenuItem} from "@/config/schemas/MenuData";
+import {MenuCategory, MenuSchemas, MenuItem} from "@/config/schemas/MenuSchemas";
 import openai from "@/config/openai";
 import {menuReaderPrompt} from "@/prompts/menuReaderPrompt";
 import {userMenuPrompt} from "@/prompts/userMenuPrompt";
 import {MenuPage, menuPageSchema} from "@/config/schemas/menupage";
 import {getStringWithMostDuplicate} from "@/utils/helperFunctions";
 
-export async function convertFilesToMenu(files: File[]): Promise<MenuData> {
+import "server-only";
+import { db } from "@/db";
+import { menus } from "@/db/schema";
+import {cacheLife, cacheTag} from "next/cache";
+
+export async function getMenus() {
+    "use cache";
+    cacheTag("menus");
+    cacheLife("days");
+    return db.select().from(menus);
+}
+
+export async function getMenuById(id: number) {
+    const allMenus = await getMenus(); // cached, tagged "menus"
+    return allMenus.find((menu) => menu.id === id);
+}
+
+export async function convertFilesToMenu(files: File[]): Promise<MenuSchemas> {
     const languages: string[] = [];
     const currencies: string[] = [];
     const notes: string[] = [];
@@ -96,5 +113,5 @@ export async function convertFilesToMenu(files: File[]): Promise<MenuData> {
         currency: getStringWithMostDuplicate(currencies),
         notes: notes,
         categories: categories,
-    } as MenuData;
+    } as MenuSchemas;
 }

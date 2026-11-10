@@ -2,7 +2,8 @@ import { pgTable, pgEnum, serial, varchar, integer, text, jsonb,
     timestamp, unique } from "drizzle-orm/pg-core";
 
 import {MenuPage as RawPageData} from "@/config/schemas/menupage";
-import {MenuData} from "@/config/schemas/MenuData";
+import {MenuSchemas} from "@/config/schemas/MenuSchemas";
+import {InferSelectModel} from "drizzle-orm";
 
 export const menuStatus = pgEnum("menu_status", ["processing", "ready", "failed"]);
 export const pageStatus = pgEnum("page_status", ["pending", "processing", "done", "failed"]);
@@ -12,7 +13,7 @@ export const menus = pgTable("menus", {
     name: varchar("name", { length: 100 }).notNull(),
     theme: varchar("theme", { length: 30 }).notNull().default("classic"),
     status: menuStatus("status").notNull().default("processing"),
-    data: jsonb("data").$type<MenuData>(),
+    data: jsonb("data").$type<MenuSchemas>(),
     version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -27,3 +28,5 @@ export const menuPages = pgTable("menu_pages", {
     data: jsonb("data").$type<RawPageData>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [unique().on(t.menuId, t.pageNumber)]);
+
+export type Menu = InferSelectModel<typeof menus>;

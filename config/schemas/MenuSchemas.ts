@@ -8,7 +8,7 @@ export type MenuCategory = {
     items: MenuItem[];
 };
 
-export type MenuData = {
+export type MenuSchemas = {
     language: string | null;
     currency: string | null;
     notes: string[];
