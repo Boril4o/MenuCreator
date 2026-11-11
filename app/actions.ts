@@ -4,10 +4,7 @@
 import {convertFilesToMenu} from "@/services/menuServices";
 import {insertMenuToDb} from "@/db/queries";
 
-export async function uploadMenuFiles(formData: FormData) {
-    // Use .getAll() to retrieve an array of files
-    const files = formData.getAll('files') as File[];
-
+export async function uploadMenuFiles(files: File[]): Promise<void> {
     if (!files || files.length == 0) {
         throw new Error("No file uploaded");
     }
