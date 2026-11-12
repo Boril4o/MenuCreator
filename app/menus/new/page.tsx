@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {uploadMenuFiles} from "@/app/actions";
+import { useRouter } from 'next/navigation';
+import {verifyFile} from "@/utils/helperFunctions";
+import {AppError} from "@/types/AppError";
 
 type Item = { id: string; file: File; url: string };
 
@@ -12,6 +15,7 @@ export default function CreateMenuPage() {
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const itemsRef = useRef<Item[]>([]);
+    const router = useRouter();
     itemsRef.current = items;
 
     // Free object URLs when leaving the page
@@ -20,11 +24,24 @@ export default function CreateMenuPage() {
     }, []);
 
     const addFiles = useCallback((list: FileList | File[]) => {
-        const images = Array.from(list).filter((f) => f.type.startsWith("image/"));
+        const images = Array.from(list).filter((f) => {
+            try {
+                verifyFile(f);
+                return true;
+            }
+            catch (error) {
+                if (error instanceof AppError) {
+                    setError(error.message);
+                }
+
+                return false;
+            }
+        });
+
         if (images.length === 0) {
-            setError("Only image files can be added.");
             return;
         }
+
         setError(null);
         setItems((prev) => {
             const known = new Set(
@@ -54,20 +71,24 @@ export default function CreateMenuPage() {
         setItems([]);
     };
 
-    const onSubmit = async (e: React.FormEvent) => {
+    const onSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
         if (items.length === 0 || isSubmitting) return;
         setIsSubmitting(true);
         setError(null);
-        try {
-            await uploadMenuFiles(items.map((i) => i.file));
-        } catch (err) {
-            setError(
-                err instanceof Error ? err.message : "Something went wrong. Try again."
-            );
-        } finally {
+
+        const res = await uploadMenuFiles(items.map((i) => i.file));
+
+        if (!res.success){
+            setError(res.message);
             setIsSubmitting(false);
+            return;
         }
+
+        const menuId = res.data;
+        setIsSubmitting(false);
+
+        router.push(`/menus/${menuId}`);
     };
 
     return (

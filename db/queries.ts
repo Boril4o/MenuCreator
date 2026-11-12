@@ -5,7 +5,7 @@ import {revalidateTag} from "next/cache";
 
 export async function insertMenuToDb(name: string, theme: string, data: MenuSchemas) {
     const result = await db.insert(menus).values({
-        name: "undefined",
+        name: "Untitled",
         theme: 'default',
         data: data
     }).returning(); // Returns the inserted row(s) as an array
